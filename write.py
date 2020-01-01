@@ -1,6 +1,6 @@
 front = '''
 #include <verilated.h>          // Defines common routines
-#include <iostream>             // Need std::cout
+//# include <iostream>             // Need std::cout
 #include <Vour.h>               // From Verilating "top.v"
 
 Vour *top;                      // Instantiation of module
@@ -24,10 +24,13 @@ int main(int argc, char** argv) {
     while (!Verilated::gotFinish()) {'''
 back = '''
         top->eval();            // Evaluate model
-        cout << top->Sel << endl;       // Read a output
+        printf("%d\\n",top->MuxOut);       // Read a output
         main_time++;            // Time passes...
+        if (main_time > 30){
+            printf("%d\\n", main_time);
+            break;
+        }
     }
-
     top->final();               // Done simulating
     //    // (Though this example doesn't get here)
      delete top;
@@ -46,7 +49,8 @@ def assign(s):
     return final
 n = 2
 fin = open('test.v','r')
-print(front)
+fout = open('sim_main.cpp','w')
+fout.write(front+'\n')
 fromT = 0
 toT = 0
 for line in fin:
@@ -65,14 +69,15 @@ for line in fin:
         eqlist.append(writed)
     fromT = toT
     toT += time
-    print('    '*n + f'''if (main_time > {fromT} && main_time < {toT}) {{
-{assign(eqlist)}}}''')
+    fout.write('    '*n + f'''if (main_time > {fromT} && main_time < {toT}) {{
+{assign(eqlist)}}}'''+'\n')
         # T = tuple(element[1].rstrip(' '))[1:]
 
         # inputt.append(T)
     # return inputt[1:], len(inputt)-1
-print(back)
-# f=open('Result.txt','w')
+fout.write(back+'\n')
+# f=open('sim_main.cpp','w')
 # f.write('* %s: %s responses' %(fileName[:-6], length))
-# f.close()
+fin.close()
+fout.close()
 
